@@ -5,9 +5,17 @@
  **/
 
 export default
-class Example {
+class state {
 
-    init() {
+    constructor() {
 
+    }
+
+    getState(module, cb) {
+
+        module.hash
+        if (arguments.length == 1 && typeof module === 'function') {
+            cb = module
+        }
     }
 }

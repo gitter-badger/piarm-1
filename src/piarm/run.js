@@ -4,4 +4,11 @@
  |--------------------------------------------------------------------------
  **/
 
-require('../../tools/logger').getLogger('[Alarm Module]').info('Initialized');
+require("babel/register")(
+    {
+        stage: 0,
+        optional: 'runtime'
+    }
+);
+
+require('./system/piarm');

@@ -2,8 +2,9 @@
   "name": "piarm",
   "version": "0.0.1",
   "description": "client side software",
-  "main": "./src/build",
+  "main": "./src/piarm/run.js",
   "dependencies": {
+    "babel": "^5.8.23",
     "eventemitter3": "^1.1.1",
     "flummox": "^3.5.2",
     "keypress": "^0.2.1",
