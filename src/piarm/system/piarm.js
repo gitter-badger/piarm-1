@@ -8,6 +8,7 @@ import logger from './tools/logger'
 import fs from 'fs'
 import path from 'path'
 import socket from './sockets/client/client'
+import gpio from './gpio/gpio'
 
 let log = logger.getLogger('[RUN]');
 
@@ -16,12 +17,8 @@ class Piarm {
     constructor() {
 
         this.modules = [];
-        this.run();
-    }
-
-    run() {
-
         this.initializeModules();
+        this._events()
     }
 
     /**
@@ -41,19 +38,21 @@ class Piarm {
                                     let module = path.join(dir, data.main);
                                     if (fs.lstatSync(module)) {
                                         log.debug('initializing module [' + file + ']');
+
+                                        let run = require(module);
+                                        run = new run();
+
                                         let hash = {
-                                            module: file,
-                                            dir: dir,
+                                            name: file,
+                                            module: run,
+                                            root: dir,
                                             main: module
                                         };
                                         this.modules.push(hash);
 
-                                        let run = require(module);
-                                        new run({
-                                            hash: hash,
-                                            api: require('./api/api'),
-                                            logger: logger.getLogger('[' + file.toUpperCase() + ' Module]')
-                                        });
+                                        run.api = require('./api/api');
+                                        run.log = logger.getLogger('[' + file + ' module]');
+                                        run.init();
                                     } else {
                                         log.info(module + ' Does not map to a valid module. Cannot initialize [' + file + ']')
                                     }
@@ -68,6 +67,26 @@ class Piarm {
                 log.error(err)
             }
         });
+    }
+
+    /**
+     *
+     * @param hook
+     * @param params
+     * @private
+     */
+    _triggerModuleHook = (hook, ...params) => {
+        this.modules.forEach(module => {
+            if (typeof module.module[hook] === 'function') {
+                module.module[hook](...params)
+            }
+        })
+    };
+
+    _events() {
+        gpio.register(this._triggerModuleHook.bind(this, 'channelChanged'));
+
+        socket.on('auth', this._triggerModuleHook.bind(this, 'socketWasAuthorized'))
     }
 }
 

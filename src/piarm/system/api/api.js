@@ -9,17 +9,12 @@ import Flux from '../flux/flux'
 
 class api {
 
-    constructor() {
-
-        this.gpio = new Gpio();
-    }
-
     /**
      * Add a listener for GPIO pin changes.
      * @param {function} cb - callback to be run when a pin changes.
      */
     addListener(cb) {
-        this.gpio.register(cb);
+        gpio.register(cb);
     }
 
     /**
@@ -27,7 +22,7 @@ class api {
      * @param {function} cb - callback to be removed.
      */
     removeListener(cb) {
-        this.gpio.unRegister(cb)
+        gpio.unRegister(cb)
     }
 
     /**
@@ -36,7 +31,7 @@ class api {
      * @param {function} cb - callback that is run on a successful read, passes pin value as first argument
      */
     read(channel, cb) {
-        this.gpio.read(channel, cb)
+        gpio.read(channel, cb)
     }
 
     /**
@@ -48,7 +43,7 @@ class api {
     write(channel, value, cb) {
         cb = cb || function () {
             };
-        this.gpio.write(channel, value, cb)
+        gpio.write(channel, value, cb)
     }
 
     /**

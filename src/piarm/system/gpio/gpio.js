@@ -8,19 +8,15 @@ import gpio from 'rpi-gpio'
 import Flux from '../flux/flux'
 import logger from '../tools/logger'
 import env from '../../env'
-import emitter from 'eventemitter3'
 
 let log = logger.getLogger('[GPIO Module]');
 
-export default
 class GPIO {
 
     constructor() {
 
-        this.state = {
-            channels: [],
-            callbacks: []
-        };
+        this.channels = [];
+        this.callbacks = [];
 
         Flux.getStore('channels').on('change', this._channels);
         Flux.getActions('channels').fetch();
@@ -35,7 +31,7 @@ class GPIO {
 
         if (!store.error) {
             log.debug('fetched channels');
-            this.state.channels = store.channels;
+            this.channels = store.channels;
             this.setup()
         } else {
             log.error(store.error)
@@ -46,16 +42,16 @@ class GPIO {
      * Register a callback to be run on a channel change
      */
     register(cb) {
-        this.state.callbacks.push(cb)
+        this.callbacks.push(cb)
     }
 
     /**
      * Remove the specified callback from the array
      */
     unRegister(cb) {
-        this.state.callbacks.forEach((el, index) => {
+        this.callbacks.forEach((el, index) => {
             if (cb === el) {
-                this.state.callbacks.splice(index, 1);
+                this.callbacks.splice(index, 1);
             }
         })
     }
@@ -69,11 +65,11 @@ class GPIO {
      * @param {int} value, current value of the changed channel.
      */
     broadcast = (channel, value) => {
-        this.state.channels.forEach(obj => {
+        this.channels.forEach(obj => {
             if (obj.channel == channel) {
                 log.debug('channel ' + obj.name + ':' + obj.channel + ' changed');
 
-                this.state.callbacks.forEach(cb => cb(channel, value))
+                this.callbacks.forEach(cb => cb(channel, value))
             }
         })
     };
@@ -97,7 +93,7 @@ class GPIO {
              * Set up configured channels.
              */
             gpio.destroy();
-            this.state.channels.forEach(map => {
+            this.channels.forEach(map => {
                 gpio.setup(map.channel, map.direction, map.edge);
                 log.debug('set up channel ' + map.channel + ' with dir,edge ' + map.direction + ',' + map.edge)
             });
@@ -112,7 +108,7 @@ class GPIO {
      */
     _mock() {
         setTimeout(() => {
-            this.broadcast(this.state.channels[0].channel, 1);
+            this.broadcast(this.channels[0].channel, 1);
             process.nextTick(() => this._mock())
         }, 3000)
     }
@@ -124,7 +120,7 @@ class GPIO {
      */
     _parseChannel(channel) {
         if (typeof channel === 'string') {
-            this.state.channels.forEach((obj) => {
+            this.channels.forEach((obj) => {
                 if (obj.name == 'channel') {
                     return obj.channel
                 }
@@ -174,3 +170,5 @@ class GPIO {
         })
     }
 }
+const run = new GPIO();
+export default run;
